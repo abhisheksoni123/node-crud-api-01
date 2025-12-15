@@ -10,24 +10,77 @@ async function handleGetUserById(req, res) {
   return res.json(user);
 }
 
-async function handleCreateNewUser(req, res) {
-  const body = req.body;
-  if (!body || !body?.email) {
-    return res.status(400).json({ msg: "email is required" });
-  }
-  const result = await User.create({
-    firstName: body.firstName,
-    lastName: body.lastName,
-    email: body.email,
-    jobTitle: body.jobTitle,
-    gender: body.gender,
-  });
+async function handleDeleteUsers(req, res) {
+  const user = await User.deleteMany();
+  return res.json(user);
+}
 
-  return res.status(200).json({ msg: "success", id: result._id });
+// CREATE product
+async function handleCreateNewUser(req, res) {
+  try {
+    const { title, price, description, category, image, rating } = req.body;
+
+    if (!title || price === undefined) {
+      return res.status(400).json({ message: "Title and price are required" });
+    }
+
+    const product = await User.create({
+      title,
+      price,
+      description,
+      category,
+      image,
+      rating,
+    });
+
+    return res.status(201).json({
+      message: "Product created successfully",
+      id: product._id,
+    });
+  } catch (err) {
+    return res.status(500).json({ message: err.message });
+  }
+}
+
+async function handlePatchRating(req, res) {
+  try {
+    const userId = req.params.id;
+    const { rate } = req.body;
+
+    const updatedUser = await User.findByIdAndUpdate(
+      userId,
+      {
+        $set: {
+          "rating.rate": rate ?? 0,
+        },
+        $inc: {
+          "rating.count": 1,
+        },
+      },
+      {
+        new: true,
+        upsert: false,
+        runValidators: true,
+      }
+    );
+
+    if (!updatedUser) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    return res.json({
+      message: "Rating updated",
+      data: updatedUser,
+    });
+  } catch (err) {
+    return res.status(500).json({ message: err.message });
+  }
 }
 
 module.exports = {
   handleGetAllUsers,
   handleGetUserById,
   handleCreateNewUser,
+  handleDeleteUsers,
+  handlePatchRating,
 };

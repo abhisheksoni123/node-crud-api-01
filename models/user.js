@@ -1,28 +1,49 @@
 const mongoose = require("mongoose");
 
-const userSchema = new mongoose.Schema(
+const ratingSchema = new mongoose.Schema(
   {
-    firstName: {
-      type: String,
-      required: true,
+    rate: {
+      type: Number,
+      required: false,
     },
-    lastName: {
-      type: String,
-    },
-    email: {
-      type: String,
-      required: true,
-      unique: true,
-    },
-    jobTitle: {
-      type: String,
-      required: true,
-    },
-    gender: {
-      type: String,
+    count: {
+      type: Number,
+      required: false,
     },
   },
-  { timestamps: true }
+  { _id: false }
+);
+
+const userSchema = new mongoose.Schema(
+  {
+    title: {
+      type: String,
+      required: false,
+      trim: true,
+    },
+    price: {
+      type: Number,
+      required: false,
+      min: 0,
+    },
+    description: {
+      type: String,
+      required: false,
+    },
+    category: {
+      type: String,
+      required: false,
+      index: true,
+    },
+    image: {
+      type: String,
+      required: false,
+    },
+    rating: ratingSchema,
+  },
+  {
+    timestamps: true,
+  }
 );
 
 const User = mongoose.model("user", userSchema);

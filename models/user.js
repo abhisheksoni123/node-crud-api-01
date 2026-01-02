@@ -1,50 +1,67 @@
-const mongoose = require("mongoose");
+const { createHmac, randomBytes } = require("crypto");
+const { Schema, model } = require("mongoose");
 
-const ratingSchema = new mongoose.Schema(
+const userSchema = new Schema(
   {
-    rate: {
-      type: Number,
+    fullName: {
+      type: String,
+      required: true,
+    },
+    salt: {
+      type: String,
       required: false,
     },
-    count: {
-      type: Number,
-      required: false,
+    email: {
+      type: String,
+      required: true,
+      unique: true,
+    },
+    password: {
+      type: String,
+      required: true,
+    },
+    profileImageUrl: {
+      type: String,
+      default: "/images/default.avif",
+    },
+    role: {
+      type: String,
+      enum: ["USER", "ADMIN"],
+      default: "USER",
     },
   },
-  { _id: false }
+  { timestamps: true }
 );
 
-const userSchema = new mongoose.Schema(
-  {
-    title: {
-      type: String,
-      required: false,
-      trim: true,
-    },
-    price: {
-      type: Number,
-      required: false,
-      min: 0,
-    },
-    description: {
-      type: String,
-      required: false,
-    },
-    category: {
-      type: String,
-      required: false,
-      index: true,
-    },
-    image: {
-      type: String,
-      required: false,
-    },
-    rating: ratingSchema,
-  },
-  {
-    timestamps: true,
+userSchema.pre("save", async function () {
+  if (!this.isModified("password")) return;
+
+  const salt = randomBytes(16).toString("hex");
+  const hashedPassword = createHmac("sha256", salt)
+    .update(this.password)
+    .digest("hex");
+
+  this.salt = salt;
+  this.password = hashedPassword;
+});
+
+userSchema.static("matchPassword", async function (email, password) {
+  const user = await this.findOne({ email });
+  if (!user) throw new Error("user not found");
+
+  const salt = user.salt;
+  const hashedPassword = user.password;
+  const userProvidedHash = createHmac("sha256", salt)
+    .update(password)
+    .digest("hex");
+
+  if (hashedPassword !== userProvidedHash) {
+    throw new Error("password not matched");
   }
-);
 
-const User = mongoose.model("user", userSchema);
+  return user.toObject({ versionKey: false });
+});
+
+const User = model("user", userSchema);
+
 module.exports = User;

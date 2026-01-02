@@ -3,6 +3,7 @@ const cors = require("cors");
 const { connectMongoDb } = require("./connection");
 const { logReqRes } = require("./middlewares");
 const userRouter = require("./routes/user");
+const productRouter = require("./routes/product");
 
 const app = express();
 app.use(cors());
@@ -18,5 +19,7 @@ app.use(express.json());
 app.use(logReqRes("log.txt"));
 
 app.use("/api/users", userRouter);
+
+app.use("/api/products", productRouter);
 
 app.listen(PORT, () => console.log(`server started at PORT: ${PORT}`));

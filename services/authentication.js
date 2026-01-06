@@ -2,12 +2,12 @@ const JWT = require("jsonwebtoken");
 
 const secret = "Superman@123";
 
-function createTokenForProduct(product) {
+function createTokenForUser(user) {
   const payload = {
-    _id: product._id,
-    email: product.email,
-    profileImageUrl: product.profileImageUrl,
-    role: product.role,
+    _id: user._id,
+    email: user.email,
+    profileImageUrl: user.profileImageUrl,
+    role: user.role,
   };
   const token = JWT.sign(payload, secret);
   return token;
@@ -17,7 +17,8 @@ function validateToken(token) {
   const payload = JWT.verify(token, secret);
   return payload;
 }
+
 module.exports = {
-  createTokenForProduct,
+  createTokenForUser,
   validateToken,
 };

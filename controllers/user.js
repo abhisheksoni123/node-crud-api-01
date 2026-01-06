@@ -20,15 +20,11 @@ async function handleLoginUser(req, res) {
   const { email, password } = req.body;
 
   try {
-    const user = await User.matchPassword(email, password);
+    const token = await User.matchPasswordAndGenerateToken(email, password);
 
     // ✅ Success response
     res.status(200).json({
-      user: {
-        _id: user._id,
-        email: user.email,
-        role: user.role,
-      },
+      token,
     });
   } catch (err) {
     res.status(401).json({
